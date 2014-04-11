@@ -40,7 +40,7 @@ SIZE = (800, 600)
 
 SCREEN = pygame.display.set_mode(SIZE)
 
-CENTER = [400, 300]
+CENTER = [SIZE[0]/2, SIZE[1]/2]
 ship_center = CENTER
 size = 40
 
@@ -64,6 +64,13 @@ bullet_group = pygame.sprite.Group()
 fire = False
 bullet_distance = 0
 
+max_ship_speed = 5
+ship_speed = max_ship_speed
+ship_rocket = False
+start_time = pygame.time.get_ticks()
+
+
+
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -79,9 +86,11 @@ while True:
                 fire = True
             elif event.key == pygame.K_UP:
                 move_forward = True
+                ship_speed = max_ship_speed
+                ship_rocket = True
         elif event.type == pygame.KEYUP:
-            move_forward = False
             fire = False
+            ship_rocket = False
                 
     if current_delay > 0:
         current_delay -= 1
@@ -131,8 +140,20 @@ while True:
         mid_y = int((ship_center[1] + _y) / 2)
         quarter_x = int((ship_center[0] + mid_x) / 2)
         quarter_y = int((ship_center[1] + mid_y) / 2)
+
+
         move_x = int((ship_center[0] + quarter_x) / 2)
         move_y = int((ship_center[1] + quarter_y) / 2)
+        move4_x = int((ship_center[0] + move_x) / 2)
+        move4_y = int((ship_center[1] + move_y) / 2)
+        move3_x = int((ship_center[0] + move4_x) / 2)
+        move3_y = int((ship_center[1] + move4_y) / 2)
+        move2_x = int((ship_center[0] + move3_x) / 2)
+        move2_y = int((ship_center[1] + move3_y) / 2)
+        move1_x = int((ship_center[0] + move2_x) / 2)
+        move1_y = int((ship_center[1] + move2_y) / 2)
+
+        
 
         thrust_x = (_x2 + _x3) / 2
         thrust_y = (_y2 + _y3) / 2
@@ -140,7 +161,53 @@ while True:
         SCREEN.fill(BLACK)
 
         if move_forward:
-            ship_center = [move_x, move_y]
+            ship_delay = 2000
+            if ship_speed == 5:
+                elapsed_time = pygame.time.get_ticks() - start_time
+                if elapsed_time < ship_delay:
+                    ship_center = [move_x, move_y]
+                else:
+                    ship_speed = 4
+                    start_time = pygame.time.get_ticks()
+            elif ship_speed == 4:
+                elapsed_time = pygame.time.get_ticks() - start_time
+                if elapsed_time < ship_delay * 2:
+                    ship_center = [move4_x, move4_y]
+                else:
+                    ship_speed = 3
+                    start_time = pygame.time.get_ticks()
+            elif ship_speed == 3:
+                elapsed_time = pygame.time.get_ticks() - start_time
+                if elapsed_time < ship_delay * 3:
+                    ship_center = [move3_x, move3_y]
+                else:
+                    ship_speed = 2
+                    start_time = pygame.time.get_ticks()
+
+            elif ship_speed == 2:
+                elapsed_time = pygame.time.get_ticks() - start_time
+                if elapsed_time < ship_delay * 5:
+                    ship_center = [move2_x, move2_y]
+                else:
+                    ship_speed = 1
+                    start_time = pygame.time.get_ticks()
+            elif ship_speed == 1:
+                elapsed_time = pygame.time.get_ticks() - start_time
+                if elapsed_time < ship_delay * 10:
+                    ship_center = [move1_x, move1_y]
+                else:
+                    ship_speed = 0
+
+
+
+
+
+
+
+
+                    
+        if ship_rocket:
+            start_time = pygame.time.get_ticks()
             pygame.draw.circle(SCREEN, ORANGE, (thrust_x, thrust_y), 10, 1)
             if thrust_delay > 0:
                 thrust_delay -= 1
@@ -152,10 +219,11 @@ while True:
 
         pygame.draw.polygon(SCREEN, RED, ((_x, _y), (_x2, _y2), ship_center, (_x3, _y3)), 2)
 
+        for bullet in bullet_group:
+            if bullet.rect.centerx > SIZE[0] or bullet.rect.centerx < 0 or bullet.rect.centery < 0 or bullet.rect.centery > SIZE[1]:
+                bullet_group.remove(bullet)
         bullet_group.draw(SCREEN)
 
-     
-#        pygame.draw.circle(SCREEN, RED, (_bulletx, _bullety), 3)
 
         if ship_center[0] < 0:
             ship_center[0] = SIZE[0]
